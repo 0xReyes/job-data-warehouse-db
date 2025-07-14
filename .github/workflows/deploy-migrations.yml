@@ -1,0 +1,31 @@
+# GitHub Actions Workflow to deploy database migrations to Neon using Docker
+
+name: Deploy Database Migrations
+
+# This workflow runs on every push to the main branch
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy-to-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Check out the repository code
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      # 2. Run Flyway migrations using the official Docker image
+      # This step is now simpler and more reliable as it doesn't install any software.
+      - name: Run Flyway Migrate with Docker
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}/flyway/sql:/flyway/sql \
+            -v ${{ github.workspace }}/flyway/conf:/flyway/conf \
+            -e POSTGRES_USER='${{ secrets.POSTGRES_USER }}' \
+            -e POSTGRES_PASSWORD='${{ secrets.POSTGRES_PASSWORD }}' \
+            flyway/flyway \
+            migrate
